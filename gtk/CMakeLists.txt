@@ -49,7 +49,7 @@ include(CheckIncludeFile)
 include(FindGettext)
 
 # Add any new language to this foreach loop
-foreach(lang es fr_FR ja pl pt_BR ru sr@latin uk zh_CN)
+foreach(lang de es fr_FR ja pl pt_BR ru sr@latin uk zh_CN)
     GETTEXT_PROCESS_PO_FILES(${lang} ALL PO_FILES po/${lang}.po)
     install(FILES ${CMAKE_BINARY_DIR}/${lang}.gmo
             DESTINATION ${LOCALEDIR}/${lang}/LC_MESSAGES
@@ -64,9 +64,8 @@ pkg_check_modules(XRANDR REQUIRED xrandr)
 
 find_library(X11 X11 REQUIRED)
 find_library(XEXT Xext REQUIRED)
-find_library(DL dl REQUIRED)
 list(APPEND ARGS ${SDL2_CFLAGS} ${GTK_CFLAGS} ${XRANDR_CFLAGS})
-list(APPEND LIBS ${X11} ${XEXT} ${DL} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${XRANDR_LIBRARIES})
+list(APPEND LIBS ${X11} ${XEXT} ${CMAKE_DL_LIBS} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${XRANDR_LIBRARIES})
 
 list(APPEND SOURCES src/gtk_display_driver_opengl.cpp
                     ../common/video/glx_context.cpp
