@@ -49,21 +49,8 @@ static void S9xTerm(int signal)
     S9xExit();
 }
 
-int main(int argc, char *argv[])
+static void S9xInitWindow(const Glib::RefPtr<Gtk::Application> app, int argc, char *argv[])
 {
-    auto app = Gtk::Application::create("com.snes9x.gtk", Gio::APPLICATION_NON_UNIQUE);
-
-    std::locale::global(std::locale(""));
-    bindtextdomain(GETTEXT_PACKAGE, SNES9XLOCALEDIR);
-    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-    textdomain(GETTEXT_PACKAGE);
-
-    struct sigaction sig_callback{};
-    sig_callback.sa_handler = S9xTerm;
-    sigaction(15, &sig_callback, NULL); // SIGTERM
-    sigaction(3, &sig_callback, NULL);  // SIGQUIT
-    sigaction(2, &sig_callback, NULL);  // SIGINT
-
     Settings = {};
 
     // Original config fills out values this port doesn't.
@@ -154,7 +141,29 @@ int main(int argc, char *argv[])
 
     Glib::signal_timeout().connect(sigc::ptr_fun(S9xPauseFunc), 100);
     Glib::signal_timeout().connect(sigc::ptr_fun(S9xScreenSaverCheckFunc), 10000);
-    app->run(*top_level->window.get());
+    top_level->window->set_application(app);
+}
+
+int main(int argc, char *argv[])
+{
+    auto app = Gtk::Application::create("com.snes9x.gtk", Gio::APPLICATION_NON_UNIQUE);
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, SNES9XLOCALEDIR);
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    textdomain(GETTEXT_PACKAGE);
+
+    struct sigaction sig_callback{};
+    sig_callback.sa_handler = S9xTerm;
+    sigaction(15, &sig_callback, NULL); // SIGTERM
+    sigaction(3, &sig_callback, NULL);  // SIGQUIT
+    sigaction(2, &sig_callback, NULL);  // SIGINT
+
+    app->signal_activate().connect([&] {
+        S9xInitWindow(app, argc, argv);
+    });
+
+    app->run(argc, argv);
     return 0;
 }
 
